@@ -1,8 +1,8 @@
 "use strict";
 
-const fixtures = require("./fixtures");
-const streamBuffer = require("../src/index");
-const { WritableStreamBuffer } = streamBuffer;
+import { constants, WritableStreamBuffer } from "nano-stream-buffers";
+
+import * as fixtures from "./fixtures";
 
 describe("WritableStreamBuffer with defaults", () => {
   let buffer;
@@ -20,7 +20,7 @@ describe("WritableStreamBuffer with defaults", () => {
   });
 
   it("backing buffer should be default size", () => {
-    expect(buffer.maxSize()).toEqual(streamBuffer.DEFAULT_INITIAL_SIZE);
+    expect(buffer.maxSize()).toEqual(constants.DEFAULT_INITIAL_SIZE);
   });
 
   describe("when writing a simple string", () => {
@@ -33,7 +33,7 @@ describe("WritableStreamBuffer with defaults", () => {
     });
 
     it("should have a default max size", () => {
-      expect(buffer.maxSize()).toEqual(streamBuffer.DEFAULT_INITIAL_SIZE);
+      expect(buffer.maxSize()).toEqual(constants.DEFAULT_INITIAL_SIZE);
     });
 
     it("contents should be correct", () => {
@@ -63,8 +63,7 @@ describe("WritableStreamBuffer with defaults", () => {
 
     it("should have a larger backing buffer max size", () => {
       expect(buffer.maxSize()).toEqual(
-        streamBuffer.DEFAULT_INITIAL_SIZE +
-          streamBuffer.DEFAULT_INCREMENT_AMOUNT,
+        constants.DEFAULT_INITIAL_SIZE + constants.DEFAULT_INCREMENT_AMOUNT,
       );
     });
 

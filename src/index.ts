@@ -1,5 +1,3 @@
-"use strict";
-
-module.exports = require("./constants");
-module.exports.ReadableStreamBuffer = require("./readable");
-module.exports.WritableStreamBuffer = require("./writable");
+export { constants } from "./constants";
+export { ReadableStreamBuffer } from "./readable";
+export { WritableStreamBuffer } from "./writable";

@@ -1,6 +1,6 @@
 "use strict";
 
-const streamBuffer = require("../src/index");
+import { constants } from "nano-stream-buffers";
 
 const simpleString = "This is a String!";
 const unicodeString = "\u00bd + \u00bc = \u00be";
@@ -10,14 +10,9 @@ for (let i = 0; i < binaryData.length; i++) {
 }
 
 // Binary data larger than initial size of buffers.
-const largeBinaryData = new Buffer(streamBuffer.DEFAULT_INITIAL_SIZE + 1);
+const largeBinaryData = new Buffer(constants.DEFAULT_INITIAL_SIZE + 1);
 for (let i = 0; i < largeBinaryData.length; i++) {
   largeBinaryData[i] = i % 256;
 }
 
-module.exports = {
-  simpleString: simpleString,
-  unicodeString: unicodeString,
-  binaryData: binaryData,
-  largeBinaryData: largeBinaryData,
-};
+export { simpleString, unicodeString, binaryData, largeBinaryData };

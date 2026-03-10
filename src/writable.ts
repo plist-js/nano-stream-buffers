@@ -1,10 +1,9 @@
-"use strict";
+import * as stream from "node:stream";
+import * as util from "node:util";
 
-const util = require("node:util");
-const stream = require("node:stream");
-const constants = require("./constants");
+import { constants } from "./constants";
 
-const WritableStreamBuffer = (module.exports = function (opts) {
+const WritableStreamBuffer = function (opts) {
   opts = opts || {};
   opts.decodeStrings = true;
 
@@ -72,6 +71,8 @@ const WritableStreamBuffer = (module.exports = function (opts) {
     size += chunk.length;
     callback();
   };
-});
+};
 
 util.inherits(WritableStreamBuffer, stream.Writable);
+
+export { WritableStreamBuffer };

@@ -1,10 +1,9 @@
-"use strict";
+import * as stream from "node:stream";
+import * as util from "node:util";
 
-const stream = require("node:stream");
-const constants = require("./constants");
-const util = require("node:util");
+import { constants } from "./constants";
 
-const ReadableStreamBuffer = (module.exports = function (opts) {
+const ReadableStreamBuffer = function (opts) {
   const that = this;
   opts = opts || {};
 
@@ -112,6 +111,8 @@ const ReadableStreamBuffer = (module.exports = function (opts) {
     allowPush = true;
     kickSendDataTask();
   };
-});
+};
 
 util.inherits(ReadableStreamBuffer, stream.Readable);
+
+export { ReadableStreamBuffer };

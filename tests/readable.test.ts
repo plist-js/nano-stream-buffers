@@ -1,8 +1,8 @@
 "use strict";
 
-const fixtures = require("./fixtures");
-const streamBuffer = require("../src/index");
-const { ReadableStreamBuffer } = streamBuffer;
+import { ReadableStreamBuffer } from "nano-stream-buffers";
+
+import * as fixtures from "./fixtures";
 
 describe("A default ReadableStreamBuffer", () => {
   // Declare variables here so they are accessible in all blocks below
