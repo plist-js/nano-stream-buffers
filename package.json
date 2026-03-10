@@ -1,0 +1,34 @@
+{
+  "name": "nano-stream-buffers",
+  "version": "0.0.0",
+  "keywords": [
+    "stream-buffers"
+  ],
+  "license": "MIT",
+  "author": "gameroman",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gameroman-npm/nano-stream-buffers.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "format": "oxfmt",
+    "lint": "oxlint",
+    "test": "bun test",
+    "build": "tsdown",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.37.0",
+    "oxlint": "^1.50.0",
+    "tsdown": "^0.21.1",
+    "typescript": "^5.9.3"
+  }
+}
