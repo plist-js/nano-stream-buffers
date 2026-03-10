@@ -1,21 +1,21 @@
 "use strict";
 
-var util = require("node:util");
-var stream = require("node:stream");
-var constants = require("./constants");
+const util = require("node:util");
+const stream = require("node:stream");
+const constants = require("./constants");
 
-var WritableStreamBuffer = (module.exports = function (opts) {
+const WritableStreamBuffer = (module.exports = function (opts) {
   opts = opts || {};
   opts.decodeStrings = true;
 
   stream.Writable.call(this, opts);
 
-  var initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
-  var incrementAmount =
+  const initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
+  const incrementAmount =
     opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
 
-  var buffer = new Buffer(initialSize);
-  var size = 0;
+  let buffer = new Buffer(initialSize);
+  let size = 0;
 
   this.size = function () {
     return size;
@@ -28,7 +28,7 @@ var WritableStreamBuffer = (module.exports = function (opts) {
   this.getContents = function (length) {
     if (!size) return false;
 
-    var data = new Buffer(Math.min(length || size, size));
+    const data = new Buffer(Math.min(length || size, size));
     buffer.copy(data, 0, 0, data.length);
 
     if (data.length < size) buffer.copy(buffer, 0, data.length);
@@ -41,12 +41,12 @@ var WritableStreamBuffer = (module.exports = function (opts) {
   this.getContentsAsString = function (encoding, length) {
     if (!size) return false;
 
-    var data = buffer.toString(
+    const data = buffer.toString(
       encoding || "utf8",
       0,
       Math.min(length || size, size),
     );
-    var dataLength = Buffer.byteLength(data);
+    const dataLength = Buffer.byteLength(data);
 
     if (dataLength < size) buffer.copy(buffer, 0, dataLength);
 
@@ -54,13 +54,13 @@ var WritableStreamBuffer = (module.exports = function (opts) {
     return data;
   };
 
-  var increaseBufferIfNecessary = function (incomingDataSize) {
+  const increaseBufferIfNecessary = function (incomingDataSize) {
     if (buffer.length - size < incomingDataSize) {
-      var factor = Math.ceil(
+      const factor = Math.ceil(
         (incomingDataSize - (buffer.length - size)) / incrementAmount,
       );
 
-      var newBuffer = new Buffer(buffer.length + incrementAmount * factor);
+      const newBuffer = new Buffer(buffer.length + incrementAmount * factor);
       buffer.copy(newBuffer, 0, 0, size);
       buffer = newBuffer;
     }

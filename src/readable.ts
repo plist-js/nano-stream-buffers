@@ -1,35 +1,35 @@
 "use strict";
 
-var stream = require("node:stream");
-var constants = require("./constants");
-var util = require("node:util");
+const stream = require("node:stream");
+const constants = require("./constants");
+const util = require("node:util");
 
-var ReadableStreamBuffer = (module.exports = function (opts) {
-  var that = this;
+const ReadableStreamBuffer = (module.exports = function (opts) {
+  const that = this;
   opts = opts || {};
 
   stream.Readable.call(this, opts);
 
   this.stopped = false;
 
-  var frequency = opts.hasOwnProperty("frequency")
+  const frequency = opts.hasOwnProperty("frequency")
     ? opts.frequency
     : constants.DEFAULT_FREQUENCY;
-  var chunkSize = opts.chunkSize || constants.DEFAULT_CHUNK_SIZE;
-  var initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
-  var incrementAmount =
+  const chunkSize = opts.chunkSize || constants.DEFAULT_CHUNK_SIZE;
+  const initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
+  const incrementAmount =
     opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
 
-  var size = 0;
-  var buffer = new Buffer(initialSize);
-  var allowPush = false;
+  let size = 0;
+  let buffer = new Buffer(initialSize);
+  let allowPush = false;
 
-  var sendData = function () {
-    var amount = Math.min(chunkSize, size);
-    var sendMore = false;
+  const sendData = function () {
+    const amount = Math.min(chunkSize, size);
+    let sendMore = false;
 
     if (amount > 0) {
-      var chunk = null;
+      let chunk = null;
       chunk = new Buffer(amount);
       buffer.copy(chunk, 0, 0, amount);
 
@@ -70,19 +70,19 @@ var ReadableStreamBuffer = (module.exports = function (opts) {
     return buffer.length;
   };
 
-  var increaseBufferIfNecessary = function (incomingDataSize) {
+  const increaseBufferIfNecessary = function (incomingDataSize) {
     if (buffer.length - size < incomingDataSize) {
-      var factor = Math.ceil(
+      const factor = Math.ceil(
         (incomingDataSize - (buffer.length - size)) / incrementAmount,
       );
 
-      var newBuffer = new Buffer(buffer.length + incrementAmount * factor);
+      const newBuffer = new Buffer(buffer.length + incrementAmount * factor);
       buffer.copy(newBuffer, 0, 0, size);
       buffer = newBuffer;
     }
   };
 
-  var kickSendDataTask = function () {
+  const kickSendDataTask = function () {
     if (!sendData.timeout && allowPush) {
       sendData.timeout = setTimeout(sendData, frequency);
     }
@@ -99,7 +99,7 @@ var ReadableStreamBuffer = (module.exports = function (opts) {
       size += data.length;
     } else {
       data = data + "";
-      var dataSizeInBytes = Buffer.byteLength(data);
+      const dataSizeInBytes = Buffer.byteLength(data);
       increaseBufferIfNecessary(dataSizeInBytes);
       buffer.write(data, size, encoding || "utf8");
       size += dataSizeInBytes;
