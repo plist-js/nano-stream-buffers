@@ -1,78 +1,80 @@
-import * as stream from "node:stream";
-import * as util from "node:util";
+import { Writable } from "node:stream";
 
 import { constants } from "./constants";
 
-function WritableStreamBuffer(opts) {
-  opts = opts || {};
-  opts.decodeStrings = true;
+class WritableStreamBuffer extends Writable {
+  constructor(opts = {}) {
+    opts.decodeStrings = true;
+    super(opts);
 
-  stream.Writable.call(this, opts);
-
-  const initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
-  const incrementAmount =
-    opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
-
-  let buffer = new Buffer(initialSize);
-  let size = 0;
-
-  this.size = function () {
-    return size;
-  };
-
-  this.maxSize = function () {
-    return buffer.length;
-  };
-
-  this.getContents = function (length) {
-    if (!size) return false;
-
-    const data = new Buffer(Math.min(length || size, size));
-    buffer.copy(data, 0, 0, data.length);
-
-    if (data.length < size) buffer.copy(buffer, 0, data.length);
-
-    size -= data.length;
-
-    return data;
-  };
-
-  this.getContentsAsString = function (encoding, length) {
-    if (!size) return false;
-
-    const data = buffer.toString(
-      encoding || "utf8",
-      0,
-      Math.min(length || size, size),
+    this._incrementAmount =
+      opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
+    this._buffer = Buffer.alloc(
+      opts.initialSize || constants.DEFAULT_INITIAL_SIZE,
     );
-    const dataLength = Buffer.byteLength(data);
+    this._size = 0;
+  }
 
-    if (dataLength < size) buffer.copy(buffer, 0, dataLength);
+  size() {
+    return this._size;
+  }
 
-    size -= dataLength;
+  maxSize() {
+    return this._buffer.length;
+  }
+
+  getContents(length) {
+    if (!this._size) return false;
+
+    const actualLength = Math.min(length || this._size, this._size);
+    const data = Buffer.alloc(actualLength);
+    this._buffer.copy(data, 0, 0, actualLength);
+
+    if (actualLength < this._size) {
+      this._buffer.copy(this._buffer, 0, actualLength, this._size);
+    }
+
+    this._size -= actualLength;
     return data;
-  };
+  }
 
-  const increaseBufferIfNecessary = function (incomingDataSize) {
-    if (buffer.length - size < incomingDataSize) {
+  getContentsAsString(encoding = "utf8", length) {
+    if (!this._size) return false;
+
+    const actualLength = Math.min(length || this._size, this._size);
+    const data = this._buffer.toString(encoding, 0, actualLength);
+    const dataLengthInBytes = Buffer.byteLength(data, encoding);
+
+    if (dataLengthInBytes < this._size) {
+      this._buffer.copy(this._buffer, 0, dataLengthInBytes, this._size);
+    }
+
+    this._size -= dataLengthInBytes;
+    return data;
+  }
+
+  _increaseBufferIfNecessary(incomingDataSize) {
+    const remainingSpace = this._buffer.length - this._size;
+
+    if (remainingSpace < incomingDataSize) {
       const factor = Math.ceil(
-        (incomingDataSize - (buffer.length - size)) / incrementAmount,
+        (incomingDataSize - remainingSpace) / this._incrementAmount,
       );
 
-      const newBuffer = new Buffer(buffer.length + incrementAmount * factor);
-      buffer.copy(newBuffer, 0, 0, size);
-      buffer = newBuffer;
+      const newBuffer = Buffer.alloc(
+        this._buffer.length + this._incrementAmount * factor,
+      );
+      this._buffer.copy(newBuffer, 0, 0, this._size);
+      this._buffer = newBuffer;
     }
-  };
+  }
 
-  this._write = function (chunk, encoding, callback) {
-    increaseBufferIfNecessary(chunk.length);
-    chunk.copy(buffer, size, 0);
-    size += chunk.length;
+  _write(chunk, encoding, callback) {
+    this._increaseBufferIfNecessary(chunk.length);
+    chunk.copy(this._buffer, this._size, 0);
+    this._size += chunk.length;
     callback();
-  };
+  }
 }
-
-util.inherits(WritableStreamBuffer, stream.Writable);
 
 export { WritableStreamBuffer };

@@ -1,118 +1,117 @@
-import * as stream from "node:stream";
-import * as util from "node:util";
+import { Readable } from "node:stream";
 
 import { constants } from "./constants";
 
-function ReadableStreamBuffer(opts) {
-  const that = this;
-  opts = opts || {};
+class ReadableStreamBuffer extends Readable {
+  constructor(opts = {}) {
+    super(opts);
 
-  stream.Readable.call(this, opts);
+    this.stopped = false;
+    this._frequency = opts.hasOwnProperty("frequency")
+      ? opts.frequency
+      : constants.DEFAULT_FREQUENCY;
+    this._chunkSize = opts.chunkSize || constants.DEFAULT_CHUNK_SIZE;
+    this._incrementAmount =
+      opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
 
-  this.stopped = false;
+    this._size = 0;
+    this._buffer = Buffer.alloc(
+      opts.initialSize || constants.DEFAULT_INITIAL_SIZE,
+    );
+    this._allowPush = false;
+    this._timeout = null;
+  }
 
-  const frequency = opts.hasOwnProperty("frequency")
-    ? opts.frequency
-    : constants.DEFAULT_FREQUENCY;
-  const chunkSize = opts.chunkSize || constants.DEFAULT_CHUNK_SIZE;
-  const initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
-  const incrementAmount =
-    opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
-
-  let size = 0;
-  let buffer = new Buffer(initialSize);
-  let allowPush = false;
-
-  const sendData = function () {
-    const amount = Math.min(chunkSize, size);
+  _sendData = () => {
+    const amount = Math.min(this._chunkSize, this._size);
     let sendMore = false;
 
     if (amount > 0) {
-      let chunk = null;
-      chunk = new Buffer(amount);
-      buffer.copy(chunk, 0, 0, amount);
+      const chunk = Buffer.alloc(amount);
+      this._buffer.copy(chunk, 0, 0, amount);
 
-      sendMore = that.push(chunk) !== false;
-      allowPush = sendMore;
+      sendMore = this.push(chunk) !== false;
+      this._allowPush = sendMore;
 
-      buffer.copy(buffer, 0, amount, size);
-      size -= amount;
+      this._buffer.copy(this._buffer, 0, amount, this._size);
+      this._size -= amount;
     }
 
-    if (size === 0 && that.stopped) {
-      that.push(null);
+    if (this._size === 0 && this.stopped) {
+      this.push(null);
     }
 
     if (sendMore) {
-      sendData.timeout = setTimeout(sendData, frequency);
+      this._timeout = setTimeout(this._sendData, this._frequency);
     } else {
-      sendData.timeout = null;
+      this._timeout = null;
     }
   };
 
-  this.stop = function () {
+  stop() {
     if (this.stopped) {
       throw new Error("stop() called on already stopped ReadableStreamBuffer");
     }
     this.stopped = true;
 
-    if (size === 0) {
+    if (this._size === 0) {
       this.push(null);
     }
-  };
+  }
 
-  this.size = function () {
-    return size;
-  };
+  size() {
+    return this._size;
+  }
 
-  this.maxSize = function () {
-    return buffer.length;
-  };
+  maxSize() {
+    return this._buffer.length;
+  }
 
-  const increaseBufferIfNecessary = function (incomingDataSize) {
-    if (buffer.length - size < incomingDataSize) {
+  _increaseBufferIfNecessary(incomingDataSize) {
+    if (this._buffer.length - this._size < incomingDataSize) {
       const factor = Math.ceil(
-        (incomingDataSize - (buffer.length - size)) / incrementAmount,
+        (incomingDataSize - (this._buffer.length - this._size)) /
+          this._incrementAmount,
       );
 
-      const newBuffer = new Buffer(buffer.length + incrementAmount * factor);
-      buffer.copy(newBuffer, 0, 0, size);
-      buffer = newBuffer;
+      const newBuffer = Buffer.alloc(
+        this._buffer.length + this._incrementAmount * factor,
+      );
+      this._buffer.copy(newBuffer, 0, 0, this._size);
+      this._buffer = newBuffer;
     }
-  };
+  }
 
-  const kickSendDataTask = function () {
-    if (!sendData.timeout && allowPush) {
-      sendData.timeout = setTimeout(sendData, frequency);
+  _kickSendDataTask() {
+    if (!this._timeout && this._allowPush) {
+      this._timeout = setTimeout(this._sendData, this._frequency);
     }
-  };
+  }
 
-  this.put = function (data, encoding) {
-    if (that.stopped) {
+  put(data, encoding) {
+    if (this.stopped) {
       throw new Error("Tried to write data to a stopped ReadableStreamBuffer");
     }
 
     if (Buffer.isBuffer(data)) {
-      increaseBufferIfNecessary(data.length);
-      data.copy(buffer, size, 0);
-      size += data.length;
+      this._increaseBufferIfNecessary(data.length);
+      data.copy(this._buffer, this._size, 0);
+      this._size += data.length;
     } else {
-      data = data + "";
-      const dataSizeInBytes = Buffer.byteLength(data);
-      increaseBufferIfNecessary(dataSizeInBytes);
-      buffer.write(data, size, encoding || "utf8");
-      size += dataSizeInBytes;
+      const dataStr = String(data);
+      const dataSizeInBytes = Buffer.byteLength(dataStr, encoding || "utf8");
+      this._increaseBufferIfNecessary(dataSizeInBytes);
+      this._buffer.write(dataStr, this._size, encoding || "utf8");
+      this._size += dataSizeInBytes;
     }
 
-    kickSendDataTask();
-  };
+    this._kickSendDataTask();
+  }
 
-  this._read = function () {
-    allowPush = true;
-    kickSendDataTask();
-  };
+  _read() {
+    this._allowPush = true;
+    this._kickSendDataTask();
+  }
 }
-
-util.inherits(ReadableStreamBuffer, stream.Readable);
 
 export { ReadableStreamBuffer };
