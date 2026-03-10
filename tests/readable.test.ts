@@ -1,4 +1,4 @@
-"use strict";
+import { beforeEach, describe, expect, it } from "bun:test";
 
 import { ReadableStreamBuffer } from "nano-stream-buffers";
 

@@ -3,7 +3,7 @@ import * as util from "node:util";
 
 import { constants } from "./constants";
 
-const ReadableStreamBuffer = function (opts) {
+function ReadableStreamBuffer(opts) {
   const that = this;
   opts = opts || {};
 
@@ -111,7 +111,7 @@ const ReadableStreamBuffer = function (opts) {
     allowPush = true;
     kickSendDataTask();
   };
-};
+}
 
 util.inherits(ReadableStreamBuffer, stream.Readable);
 

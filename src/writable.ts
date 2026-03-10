@@ -3,7 +3,7 @@ import * as util from "node:util";
 
 import { constants } from "./constants";
 
-const WritableStreamBuffer = function (opts) {
+function WritableStreamBuffer(opts) {
   opts = opts || {};
   opts.decodeStrings = true;
 
@@ -71,7 +71,7 @@ const WritableStreamBuffer = function (opts) {
     size += chunk.length;
     callback();
   };
-};
+}
 
 util.inherits(WritableStreamBuffer, stream.Writable);
 
