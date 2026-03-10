@@ -13,7 +13,7 @@ describe("A default ReadableStreamBuffer", () => {
   });
 
   it("is a Stream", () => {
-    const Stream = require("stream").Stream;
+    const Stream = require("node:stream").Stream;
     expect(buffer).toBeInstanceOf(Stream);
   });
 

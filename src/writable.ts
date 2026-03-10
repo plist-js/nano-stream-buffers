@@ -1,7 +1,7 @@
 "use strict";
 
-var util = require("util");
-var stream = require("stream");
+var util = require("node:util");
+var stream = require("node:stream");
 var constants = require("./constants");
 
 var WritableStreamBuffer = (module.exports = function (opts) {
