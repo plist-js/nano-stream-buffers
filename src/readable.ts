@@ -14,9 +14,7 @@ class ReadableStreamBuffer extends stream.Readable {
     super(opts);
 
     this.stopped = false;
-    this._frequency = opts.hasOwnProperty("frequency")
-      ? opts.frequency
-      : constants.DEFAULT_FREQUENCY;
+    this._frequency = opts.frequency ?? constants.DEFAULT_FREQUENCY;
     this._chunkSize = opts.chunkSize || constants.DEFAULT_CHUNK_SIZE;
     this._incrementAmount =
       opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
@@ -29,7 +27,7 @@ class ReadableStreamBuffer extends stream.Readable {
     this._timeout = null;
   }
 
-  _sendData = (): void => {
+  #sendData = (): void => {
     const amount = Math.min(this._chunkSize, this._size);
     let sendMore = false;
 
@@ -49,7 +47,7 @@ class ReadableStreamBuffer extends stream.Readable {
     }
 
     if (sendMore) {
-      this._timeout = setTimeout(this._sendData, this._frequency);
+      this._timeout = setTimeout(this.#sendData, this._frequency);
     } else {
       this._timeout = null;
     }
@@ -74,7 +72,7 @@ class ReadableStreamBuffer extends stream.Readable {
     return this._buffer.length;
   }
 
-  private _increaseBufferIfNecessary(incomingDataSize) {
+  #increaseBufferIfNecessary(incomingDataSize) {
     if (this._buffer.length - this._size < incomingDataSize) {
       const factor = Math.ceil(
         (incomingDataSize - (this._buffer.length - this._size)) /
@@ -89,35 +87,35 @@ class ReadableStreamBuffer extends stream.Readable {
     }
   }
 
-  private _kickSendDataTask() {
+  #kickSendDataTask() {
     if (!this._timeout && this._allowPush) {
-      this._timeout = setTimeout(this._sendData, this._frequency);
+      this._timeout = setTimeout(this.#sendData, this._frequency);
     }
   }
 
-  put(data: string | Buffer, encoding?: BufferEncoding): void {
+  put(data: string | Buffer, encoding: BufferEncoding = "utf8"): void {
     if (this.stopped) {
       throw new Error("Tried to write data to a stopped ReadableStreamBuffer");
     }
 
     if (Buffer.isBuffer(data)) {
-      this._increaseBufferIfNecessary(data.length);
+      this.#increaseBufferIfNecessary(data.length);
       data.copy(this._buffer, this._size, 0);
       this._size += data.length;
     } else {
       const dataStr = String(data);
-      const dataSizeInBytes = Buffer.byteLength(dataStr, encoding || "utf8");
-      this._increaseBufferIfNecessary(dataSizeInBytes);
-      this._buffer.write(dataStr, this._size, encoding || "utf8");
+      const dataSizeInBytes = Buffer.byteLength(dataStr, encoding);
+      this.#increaseBufferIfNecessary(dataSizeInBytes);
+      this._buffer.write(dataStr, this._size, encoding);
       this._size += dataSizeInBytes;
     }
 
-    this._kickSendDataTask();
+    this.#kickSendDataTask();
   }
 
   override _read(): void {
     this._allowPush = true;
-    this._kickSendDataTask();
+    this.#kickSendDataTask();
   }
 }
 

@@ -61,7 +61,7 @@ class WritableStreamBuffer extends stream.Writable {
     return data;
   }
 
-  private _increaseBufferIfNecessary(incomingDataSize) {
+  #increaseBufferIfNecessary(incomingDataSize) {
     const remainingSpace = this._buffer.length - this._size;
 
     if (remainingSpace < incomingDataSize) {
@@ -82,7 +82,7 @@ class WritableStreamBuffer extends stream.Writable {
     encoding: BufferEncoding,
     callback: (error?: Error | null) => void,
   ): void {
-    this._increaseBufferIfNecessary(chunk.length);
+    this.#increaseBufferIfNecessary(chunk.length);
     chunk.copy(this._buffer, this._size, 0);
     this._size += chunk.length;
     callback();
