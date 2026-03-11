@@ -1,9 +1,16 @@
-import { Readable } from "node:stream";
+import * as stream from "node:stream";
 
 import { constants } from "./constants";
 
-class ReadableStreamBuffer extends Readable {
-  constructor(opts = {}) {
+interface ReadableStreamBufferOptions extends stream.ReadableOptions {
+  frequency?: number | undefined;
+  chunkSize?: number | undefined;
+  initialSize?: number | undefined;
+  incrementAmount?: number | undefined;
+}
+
+class ReadableStreamBuffer extends stream.Readable {
+  constructor(opts: ReadableStreamBufferOptions = {}) {
     super(opts);
 
     this.stopped = false;
@@ -22,7 +29,7 @@ class ReadableStreamBuffer extends Readable {
     this._timeout = null;
   }
 
-  _sendData = () => {
+  _sendData = (): void => {
     const amount = Math.min(this._chunkSize, this._size);
     let sendMore = false;
 
@@ -48,7 +55,7 @@ class ReadableStreamBuffer extends Readable {
     }
   };
 
-  stop() {
+  stop(): void {
     if (this.stopped) {
       throw new Error("stop() called on already stopped ReadableStreamBuffer");
     }
@@ -59,15 +66,15 @@ class ReadableStreamBuffer extends Readable {
     }
   }
 
-  size() {
+  size(): number {
     return this._size;
   }
 
-  maxSize() {
+  maxSize(): number {
     return this._buffer.length;
   }
 
-  _increaseBufferIfNecessary(incomingDataSize) {
+  private _increaseBufferIfNecessary(incomingDataSize) {
     if (this._buffer.length - this._size < incomingDataSize) {
       const factor = Math.ceil(
         (incomingDataSize - (this._buffer.length - this._size)) /
@@ -82,13 +89,13 @@ class ReadableStreamBuffer extends Readable {
     }
   }
 
-  _kickSendDataTask() {
+  private _kickSendDataTask() {
     if (!this._timeout && this._allowPush) {
       this._timeout = setTimeout(this._sendData, this._frequency);
     }
   }
 
-  put(data, encoding) {
+  put(data: string | Buffer, encoding?: BufferEncoding): void {
     if (this.stopped) {
       throw new Error("Tried to write data to a stopped ReadableStreamBuffer");
     }
@@ -108,10 +115,10 @@ class ReadableStreamBuffer extends Readable {
     this._kickSendDataTask();
   }
 
-  _read() {
+  override _read(): void {
     this._allowPush = true;
     this._kickSendDataTask();
   }
 }
 
-export { ReadableStreamBuffer };
+export { ReadableStreamBuffer, type ReadableStreamBufferOptions };

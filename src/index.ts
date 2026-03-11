@@ -1,3 +1,10 @@
 export { constants } from "./constants";
-export { ReadableStreamBuffer } from "./readable";
-export { WritableStreamBuffer } from "./writable";
+
+export {
+  ReadableStreamBuffer,
+  type ReadableStreamBufferOptions,
+} from "./readable";
+export {
+  WritableStreamBuffer,
+  type WritableStreamBufferOptions,
+} from "./writable";

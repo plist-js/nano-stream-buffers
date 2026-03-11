@@ -1,9 +1,14 @@
-import { Writable } from "node:stream";
+import * as stream from "node:stream";
 
 import { constants } from "./constants";
 
-class WritableStreamBuffer extends Writable {
-  constructor(opts = {}) {
+interface WritableStreamBufferOptions extends stream.WritableOptions {
+  initialSize?: number | undefined;
+  incrementAmount?: number | undefined;
+}
+
+class WritableStreamBuffer extends stream.Writable {
+  constructor(opts: WritableStreamBufferOptions = {}) {
     opts.decodeStrings = true;
     super(opts);
 
@@ -15,15 +20,15 @@ class WritableStreamBuffer extends Writable {
     this._size = 0;
   }
 
-  size() {
+  size(): number {
     return this._size;
   }
 
-  maxSize() {
+  maxSize(): number {
     return this._buffer.length;
   }
 
-  getContents(length) {
+  getContents(length?: number): Buffer | false {
     if (!this._size) return false;
 
     const actualLength = Math.min(length || this._size, this._size);
@@ -38,7 +43,10 @@ class WritableStreamBuffer extends Writable {
     return data;
   }
 
-  getContentsAsString(encoding = "utf8", length) {
+  getContentsAsString(
+    encoding: BufferEncoding = "utf8",
+    length?: number,
+  ): string | false {
     if (!this._size) return false;
 
     const actualLength = Math.min(length || this._size, this._size);
@@ -53,7 +61,7 @@ class WritableStreamBuffer extends Writable {
     return data;
   }
 
-  _increaseBufferIfNecessary(incomingDataSize) {
+  private _increaseBufferIfNecessary(incomingDataSize) {
     const remainingSpace = this._buffer.length - this._size;
 
     if (remainingSpace < incomingDataSize) {
@@ -69,7 +77,11 @@ class WritableStreamBuffer extends Writable {
     }
   }
 
-  _write(chunk, encoding, callback) {
+  override _write(
+    chunk: Buffer,
+    encoding: BufferEncoding,
+    callback: (error?: Error | null) => void,
+  ): void {
     this._increaseBufferIfNecessary(chunk.length);
     chunk.copy(this._buffer, this._size, 0);
     this._size += chunk.length;
@@ -77,4 +89,4 @@ class WritableStreamBuffer extends Writable {
   }
 }
 
-export { WritableStreamBuffer };
+export { WritableStreamBuffer, type WritableStreamBufferOptions };
