@@ -32,7 +32,10 @@ describe("A default ReadableStreamBuffer", () => {
   });
 
   it("emits end event when stopped", (done) => {
-    buffer.on("end", done);
+    buffer.on("end", () => {
+      expect().pass();
+      done();
+    });
     buffer.stop();
     buffer.read();
   });

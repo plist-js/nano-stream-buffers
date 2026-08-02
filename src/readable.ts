@@ -113,6 +113,7 @@ class ReadableStreamBuffer extends stream.Readable {
       data.copy(this._buffer, this._size, 0);
       this._size += data.length;
     } else {
+      // oxlint-disable-next-line typescript/no-unnecessary-type-conversion
       const dataStr = String(data);
       const dataSizeInBytes = Buffer.byteLength(dataStr, encoding);
       this.#increaseBufferIfNecessary(dataSizeInBytes);
