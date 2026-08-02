@@ -6,7 +6,7 @@ import * as fixtures from "./fixtures";
 
 describe("A default ReadableStreamBuffer", () => {
   // Declare variables here so they are accessible in all blocks below
-  let buffer;
+  let buffer: ReadableStreamBuffer;
 
   beforeEach(() => {
     buffer = new ReadableStreamBuffer();
@@ -32,7 +32,10 @@ describe("A default ReadableStreamBuffer", () => {
   });
 
   it("emits end event when stopped", (done) => {
-    buffer.on("end", done);
+    buffer.on("end", () => {
+      expect().pass();
+      done();
+    });
     buffer.stop();
     buffer.read();
   });

@@ -8,6 +8,10 @@ interface WritableStreamBufferOptions extends stream.WritableOptions {
 }
 
 class WritableStreamBuffer extends stream.Writable {
+  private _incrementAmount: number;
+  private _buffer: Buffer;
+  private _size: number;
+
   constructor(opts: WritableStreamBufferOptions = {}) {
     opts.decodeStrings = true;
     super(opts);
@@ -61,7 +65,7 @@ class WritableStreamBuffer extends stream.Writable {
     return data;
   }
 
-  #increaseBufferIfNecessary(incomingDataSize) {
+  #increaseBufferIfNecessary(incomingDataSize: number) {
     const remainingSpace = this._buffer.length - this._size;
 
     if (remainingSpace < incomingDataSize) {
@@ -79,7 +83,7 @@ class WritableStreamBuffer extends stream.Writable {
 
   override _write(
     chunk: Buffer,
-    encoding: BufferEncoding,
+    _encoding: BufferEncoding,
     callback: (error?: Error | null) => void,
   ): void {
     this.#increaseBufferIfNecessary(chunk.length);

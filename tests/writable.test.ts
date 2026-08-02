@@ -5,7 +5,7 @@ import { constants, WritableStreamBuffer } from "nano-stream-buffers";
 import * as fixtures from "./fixtures";
 
 describe("WritableStreamBuffer with defaults", () => {
-  let buffer;
+  let buffer: WritableStreamBuffer;
 
   beforeEach(() => {
     buffer = new WritableStreamBuffer();
@@ -45,7 +45,9 @@ describe("WritableStreamBuffer with defaults", () => {
         Buffer.byteLength(fixtures.simpleString) / 2,
       );
       const buf = Buffer.concat([
+        // @ts-expect-error
         buffer.getContents(halfLength),
+        // @ts-expect-error
         buffer.getContents(),
       ]);
       expect(buf.toString()).toEqual(fixtures.simpleString);
@@ -73,8 +75,8 @@ describe("WritableStreamBuffer with defaults", () => {
   });
 
   describe("when writing some simple data to the stream", () => {
-    let firstStr;
-    let secondStr;
+    let firstStr: string;
+    let secondStr: string;
 
     beforeEach(() => {
       buffer = new WritableStreamBuffer();
@@ -84,6 +86,7 @@ describe("WritableStreamBuffer with defaults", () => {
     describe("and retrieving half of it", () => {
       beforeEach(() => {
         const halfSize = Math.floor(fixtures.simpleString.length / 2);
+        // @ts-expect-error
         firstStr = buffer.getContentsAsString("utf8", halfSize);
       });
 
@@ -104,6 +107,7 @@ describe("WritableStreamBuffer with defaults", () => {
       describe("and then retrieving the other half of it", () => {
         beforeEach(() => {
           const remainingSize = Math.ceil(fixtures.simpleString.length / 2);
+          // @ts-expect-error
           secondStr = buffer.getContentsAsString("utf8", remainingSize);
         });
 
@@ -123,7 +127,7 @@ describe("WritableStreamBuffer with defaults", () => {
 });
 
 describe("WritableStreamBuffer with custom size and increment", () => {
-  let buffer;
+  let buffer: WritableStreamBuffer;
 
   beforeEach(() => {
     buffer = new WritableStreamBuffer({
@@ -148,7 +152,7 @@ describe("WritableStreamBuffer with custom size and increment", () => {
 });
 
 describe("When WritableStreamBuffer is written in two chunks", () => {
-  let buffer;
+  let buffer: WritableStreamBuffer;
 
   beforeEach(() => {
     buffer = new WritableStreamBuffer();

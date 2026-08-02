@@ -10,6 +10,16 @@ interface ReadableStreamBufferOptions extends stream.ReadableOptions {
 }
 
 class ReadableStreamBuffer extends stream.Readable {
+  stopped: boolean;
+
+  private _frequency: number;
+  private _chunkSize: number;
+  private _incrementAmount: number;
+  private _size: number;
+  private _buffer: Buffer;
+  private _allowPush: boolean;
+  private _timeout: NodeJS.Timeout | null;
+
   constructor(opts: ReadableStreamBufferOptions = {}) {
     super(opts);
 
@@ -72,7 +82,7 @@ class ReadableStreamBuffer extends stream.Readable {
     return this._buffer.length;
   }
 
-  #increaseBufferIfNecessary(incomingDataSize) {
+  #increaseBufferIfNecessary(incomingDataSize: number) {
     if (this._buffer.length - this._size < incomingDataSize) {
       const factor = Math.ceil(
         (incomingDataSize - (this._buffer.length - this._size)) /
@@ -103,6 +113,7 @@ class ReadableStreamBuffer extends stream.Readable {
       data.copy(this._buffer, this._size, 0);
       this._size += data.length;
     } else {
+      // oxlint-disable-next-line typescript/no-unnecessary-type-conversion
       const dataStr = String(data);
       const dataSizeInBytes = Buffer.byteLength(dataStr, encoding);
       this.#increaseBufferIfNecessary(dataSizeInBytes);
